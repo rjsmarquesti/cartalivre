@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "main": "index.ts",
   "dependencies": {
+    "@dr.pogodin/react-native-fs": "^2.40.1",
     "@dr.pogodin/react-native-static-server": "^0.28.0",
     "@expo/vector-icons": "^15.1.1",
     "@maplibre/maplibre-react-native": "^11.0.0",
