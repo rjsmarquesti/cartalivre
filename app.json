@@ -1,0 +1,61 @@
+{
+  "expo": {
+    "name": "CartaLivre",
+    "slug": "cartalivre",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "scheme": "cartalivre",
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "br.com.divulgabr.cartalivre"
+    },
+    "android": {
+      "package": "br.com.divulgabr.cartalivre",
+      "versionCode": 1,
+      "allowBackup": false,
+      "adaptiveIcon": {
+        "backgroundColor": "#0369A1",
+        "foregroundImage": "./assets/adaptive-icon-foreground.png"
+      },
+      "predictiveBackGestureEnabled": false,
+      "blockedPermissions": [
+        "android.permission.READ_MEDIA_IMAGES",
+        "android.permission.READ_MEDIA_VIDEO",
+        "android.permission.ACCESS_BACKGROUND_LOCATION",
+        "android.permission.FOREGROUND_SERVICE",
+        "android.permission.FOREGROUND_SERVICE_LOCATION"
+      ],
+      "permissions": [
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.ACCESS_FINE_LOCATION"
+      ]
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      "expo-sqlite",
+      "expo-router",
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "Precisamos da sua localização para mostrar sua posição na carta náutica e registrar sua rota durante a navegação.",
+          "isAndroidBackgroundLocationEnabled": false,
+          "isAndroidForegroundServiceEnabled": false
+        }
+      ],
+      "@maplibre/maplibre-react-native",
+      "expo-font"
+    ],
+    "experiments": {
+      "typedRoutes": true
+    },
+    "extra": {
+      "router": {},
+      "mapTilerKey": "wNl1USLnOZGI3vgcE3Wu"
+    },
+    "owner": "rjsmarques"
+  }
+}

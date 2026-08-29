@@ -1,0 +1,101 @@
+name: Build Android
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+    inputs:
+      profile:
+        description: 'Build profile'
+        required: true
+        default: 'apk'
+        type: choice
+        options:
+          - apk
+          - aab
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+jobs:
+  build:
+    name: Build Android (${{ github.event.inputs.profile || 'apk' }})
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4.2.2
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4.4.0
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Setup Java
+        uses: actions/setup-java@v4.7.1
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3.2.2
+
+      - name: Install dependencies
+        run: npm ci --legacy-peer-deps
+
+      - name: Install Expo CLI
+        run: npm install -g @expo/cli@latest
+
+      - name: Generate native Android project
+        run: npx expo prebuild --platform android --clean
+
+      - name: Aumentar heap do Gradle (evita "Java heap space" no merge/package final)
+        run: |
+          printf '\norg.gradle.jvmargs=-Xmx4096m -XX:MaxMetaspaceSize=1024m\n' >> android/gradle.properties
+          echo "--- android/gradle.properties (final) ---"
+          cat android/gradle.properties
+
+      - name: Make gradlew executable
+        run: chmod +x android/gradlew
+
+      - name: Restore keystore
+        run: |
+          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode --ignore-garbage > android/app/cartalivre.jks
+
+      - name: Build APK (distribuição direta)
+        if: ${{ github.event.inputs.profile != 'aab' }}
+        run: |
+          cd android
+          ./gradlew assembleRelease \
+            -Pandroid.injected.signing.store.file=$GITHUB_WORKSPACE/android/app/cartalivre.jks \
+            -Pandroid.injected.signing.store.password=${{ secrets.KEYSTORE_PASSWORD }} \
+            -Pandroid.injected.signing.key.alias=${{ secrets.KEY_ALIAS }} \
+            -Pandroid.injected.signing.key.password=${{ secrets.KEY_PASSWORD }}
+
+      - name: Build AAB (Play Store)
+        if: ${{ github.event.inputs.profile == 'aab' }}
+        run: |
+          cd android
+          ./gradlew bundleRelease \
+            -Pandroid.injected.signing.store.file=$GITHUB_WORKSPACE/android/app/cartalivre.jks \
+            -Pandroid.injected.signing.store.password=${{ secrets.KEYSTORE_PASSWORD }} \
+            -Pandroid.injected.signing.key.alias=${{ secrets.KEY_ALIAS }} \
+            -Pandroid.injected.signing.key.password=${{ secrets.KEY_PASSWORD }}
+
+      - name: Upload APK
+        if: ${{ github.event.inputs.profile != 'aab' }}
+        uses: actions/upload-artifact@v4.6.2
+        with:
+          name: cartalivre-${{ github.ref_name }}.apk
+          path: android/app/build/outputs/apk/release/app-release.apk
+          retention-days: 30
+
+      - name: Upload AAB
+        if: ${{ github.event.inputs.profile == 'aab' }}
+        uses: actions/upload-artifact@v4.6.2
+        with:
+          name: cartalivre-${{ github.ref_name }}.aab
+          path: android/app/build/outputs/bundle/release/app-release.aab
+          retention-days: 30

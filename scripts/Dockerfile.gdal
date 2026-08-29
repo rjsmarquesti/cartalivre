@@ -1,0 +1,5 @@
+FROM ghcr.io/osgeo/gdal:alpine-normal-latest
+
+# gdal_translate, gdalwarp, gdalinfo e gdal2tiles.py já vêm nessa imagem base.
+# Sem passos adicionais por enquanto — se o processamento de alguma carta
+# específica falhar por dependência Python ausente (ex: numpy), adicionar aqui.
